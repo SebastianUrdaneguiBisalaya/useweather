@@ -37,6 +37,7 @@ The playground runs against the library sources, so edits in `packages/*` hot-re
 | `pnpm run test` | Vitest |
 | `pnpm run build` | tsup: ESM, CJS and types for every package |
 | `pnpm playground` | Playground dev server |
+| `pnpm run smoke:pack` | After `build`: packs each package and checks ESM, CJS, types and files |
 
 All dependencies are pinned to exact versions: install with `pnpm add -E <pkg>` (`-D -E` for dev dependencies).
 
@@ -107,6 +108,14 @@ pnpm exec changeset
 Pick the affected packages and the semver bump (`patch` for fixes and visual tweaks, `minor` for new conditions, effects or props, `major` for breaking changes), then write a one-line summary.
 
 Publishing is done only by the maintainer through the GitHub Actions workflow, triggered by a GitHub Release. Never run `npm publish` or `pnpm publish` locally.
+
+### Releasing (maintainer)
+
+1. On a branch, run `pnpm run version-packages`. It applies the pending changesets: bumps versions, writes each package's `CHANGELOG.md` and deletes the consumed changeset files. Open a pull request with the result and merge it.
+2. Create a GitHub Release from `main` with a tag matching the version (for example `v0.1.0`).
+3. The **Publish to npm** workflow runs typecheck, lint, test, build and the smoke check, then publishes every package whose version is not on npm yet (`@useweather/core` first, then `@useweather/react`), with npm provenance.
+
+Requirements: the npm organization `useweather` must exist with publish rights for the maintainer, and the repository secret `NPM_TOKEN` must hold an npm *Automation* token with publish access to it.
 
 ## Reporting bugs and requesting features
 

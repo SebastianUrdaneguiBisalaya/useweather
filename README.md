@@ -12,8 +12,6 @@ import { WeatherBackground } from "@useweather/react";
 </div>
 ```
 
-> **Status:** pre-release. The packages are not published to npm yet.
-
 > useweather is inspired by the animated backgrounds of native weather apps. It is an independent project, not affiliated with or endorsed by Apple or any other company. All visuals (palettes, shapes and motion) are original.
 
 ## Features

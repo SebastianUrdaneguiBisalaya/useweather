@@ -4,8 +4,6 @@ Framework-agnostic engine behind useweather: renders animated weather background
 
 Using React? Use [`@useweather/react`](../react) instead; it wraps this package.
 
-> **Status:** pre-release. Not published to npm yet.
-
 > Inspired by native weather app backgrounds. An independent project, not affiliated with Apple or any other company. All visuals are original.
 
 ## Installation

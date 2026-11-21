@@ -1,6 +1,6 @@
 {
   "name": "@useweather/react",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "description": "React component that renders animated weather backgrounds, built on @useweather/core.",
   "keywords": [
     "weather",
@@ -17,17 +17,30 @@
     "cjs"
   ],
   "license": "ISC",
-  "author": "",
-  "private": true,
+  "author": "Sebastian Urdanegui Bisalaya",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SebastianUrdaneguiBisalaya/useweather.git",
+    "directory": "packages/react"
+  },
+  "homepage": "https://github.com/SebastianUrdaneguiBisalaya/useweather/tree/main/packages/react#readme",
+  "bugs": {
+    "url": "https://github.com/SebastianUrdaneguiBisalaya/useweather/issues"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     },
     "./package.json": "./package.json"
   },
@@ -56,7 +69,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@useweather/core": "workspace:*"
+    "@useweather/core": "workspace:^"
   },
   "peerDependencies": {
     "react": ">=18.0.0",
