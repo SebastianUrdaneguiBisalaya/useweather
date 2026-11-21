@@ -1,5 +1,6 @@
 import type { EffectFactory, EffectResolver } from "../engine/effect";
 import type { Condition } from "../types";
+import { createCelestial } from "./celestial";
 import { type CloudStyle, createClouds } from "./clouds";
 import { createFog } from "./fog";
 import { createLightning } from "./lightning";
@@ -283,6 +284,17 @@ const heavyRain = createPrecipitation(HEAVY_RAIN);
 const hail = createPrecipitation(HAIL);
 const sleet = createPrecipitation(SLEET);
 
+const clearSky = createCelestial({
+  seed: 139,
+  stars: 1,
+  strength: 1,
+});
+const fairSky = createCelestial({
+  seed: 139,
+  stars: 0.55,
+  strength: 0.85,
+});
+
 const fair = createClouds(FAIR);
 const broken = createClouds(BROKEN);
 const overcast = createClouds(OVERCAST);
@@ -296,7 +308,9 @@ const streaks = createClouds(STREAKS);
  * rain, hail, sleet and snow particles draw on the canvas above it.
  */
 const EFFECTS: Readonly<Record<Condition, readonly EffectFactory[]>> = {
-  clear: [],
+  clear: [
+    clearSky,
+  ],
   cloudy: [
     broken,
   ],
@@ -323,6 +337,7 @@ const EFFECTS: Readonly<Record<Condition, readonly EffectFactory[]>> = {
     overcast,
   ],
   "partly-cloudy": [
+    fairSky,
     fair,
   ],
   rain: [
