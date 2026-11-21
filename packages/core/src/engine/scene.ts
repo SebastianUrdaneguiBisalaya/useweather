@@ -1,5 +1,6 @@
 import { createUseWeatherError } from "../errors";
 import { resolveOptions } from "../options";
+import { getSkyPalette, SKY_BACKGROUND, SKY_VARIABLES } from "../palettes";
 import type {
   QualitySettings,
   ResolvedSceneOptions,
@@ -75,6 +76,7 @@ export const createWeatherScene = (
   root.setAttribute("aria-hidden", "true");
   root.setAttribute("data-useweather", "");
   root.style.cssText = ROOT_STYLE;
+  root.style.background = SKY_BACKGROUND;
   const canvas = document.createElement("canvas");
   canvas.style.cssText = CANVAS_STYLE;
   root.appendChild(canvas);
@@ -166,6 +168,15 @@ export const createWeatherScene = (
     if (next === "static") render(0);
   };
 
+  /** Static CSS only: the sky never needs the animation loop. */
+  const applySky = (): void => {
+    const sky = getSkyPalette(opts.condition, opts.timeOfDay);
+    root.style.setProperty(SKY_VARIABLES.top, sky.top);
+    root.style.setProperty(SKY_VARIABLES.middle, sky.middle);
+    root.style.setProperty(SKY_VARIABLES.bottom, sky.bottom);
+  };
+
+  applySky();
   mountEffects();
   const stopSize = watchSize(container, (width, height) => {
     context.width = width;
@@ -221,6 +232,11 @@ export const createWeatherScene = (
       } else if (opts.maxPixelRatio !== prev.maxPixelRatio) {
         applyCanvasSize();
       }
+      if (
+        opts.condition !== prev.condition ||
+        opts.timeOfDay !== prev.timeOfDay
+      )
+        applySky();
       if (opts.condition !== prev.condition) mountEffects();
       else for (const effect of effects) effect.configure?.();
       sync();
