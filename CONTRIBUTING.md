@@ -70,7 +70,7 @@ Installed automatically by `pnpm install`:
 | `commit-msg` | Conventional Commits check |
 | `pre-push` | `test` and `build` |
 
-Don't bypass them with `--no-verify`. CI runs the same checks.
+Don't bypass them with `--no-verify`: there is no CI on pull requests, so the hooks are the main safety net. The publish workflow runs the same checks again before releasing.
 
 ## Code style
 
