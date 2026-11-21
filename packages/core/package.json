@@ -1,12 +1,17 @@
 {
-  "name": "node-sdk-template",
+  "name": "@useweather/core",
   "version": "0.1.0",
-  "description": "Template for a Node.js SDK in TypeScript wrapping a third-party HTTP API, with dual ESM/CJS support.",
+  "description": "Framework-agnostic engine that renders animated weather backgrounds (clouds, rain, snow, sun and more) with a 60 fps, low-memory canvas and CSS pipeline.",
   "keywords": [
-    "sdk",
+    "weather",
+    "background",
+    "animation",
+    "canvas",
+    "rain",
+    "snow",
+    "clouds",
+    "ui",
     "typescript",
-    "template",
-    "tsup",
     "esm",
     "cjs"
   ],
