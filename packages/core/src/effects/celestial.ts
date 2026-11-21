@@ -69,10 +69,160 @@ const SUN_LOW: SunLook = {
   core: "radial-gradient(circle, #fffaf2 0%, #fff4e4 20%, rgba(255,226,190,0.85) 30%, rgba(255,190,140,0.38) 47%, rgba(255,170,120,0.1) 60%, rgba(255,170,120,0) 70%)",
   ghost: "255,214,180",
 };
-const MOON_CORE =
-  "radial-gradient(circle at 38% 40%, rgba(196,192,180,0.45) 0 9%, rgba(0,0,0,0) 10%), radial-gradient(circle at 63% 62%, rgba(196,192,180,0.35) 0 7%, rgba(0,0,0,0) 8%), radial-gradient(circle at 58% 30%, rgba(196,192,180,0.3) 0 5%, rgba(0,0,0,0) 6%), radial-gradient(circle, #f5f2e9 0%, #e6e2d6 62%, #d3cfc2 70%, rgba(211,207,194,0) 72%)";
-const MOON_GLOW =
-  "radial-gradient(circle, rgba(205,218,255,0.28) 0%, rgba(190,205,250,0.1) 35%, rgba(190,205,250,0) 70%)";
+/** The moon gets the same bloom and lens flare as the sun, cooler and dimmer. */
+const MOON: SunLook = {
+  bloom:
+    "radial-gradient(circle, rgba(226,234,255,0.4) 0%, rgba(214,226,255,0.2) 8%, rgba(200,216,255,0.08) 24%, rgba(200,216,255,0.03) 40%, rgba(200,216,255,0) 56%)",
+  core: "",
+  ghost: "205,218,255",
+};
+/** Moon flare relative to the sun's. */
+const MOON_FLARE = 0.4;
+/** Moon disc radius as a fraction of the body size (matches the sun's bright core). */
+const MOON_RADIUS = 0.27;
+
+/**
+ * Paints a realistic full moon once into `canvas` (`s` CSS pixels square):
+ * a soft halo, then a disc with limb darkening, dark maria, small craters with
+ * lit rims and fine grain. Seeded, so it always looks the same. Never per frame.
+ */
+const paintMoon = (
+  canvas: HTMLCanvasElement,
+  s: number,
+  pixelRatio: number,
+  seed: number,
+): void => {
+  const px = Math.max(1, Math.round(s * pixelRatio));
+  canvas.width = px;
+  canvas.height = px;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  const random = createRandom(seed);
+  const c = px / 2;
+  const r = px * MOON_RADIUS;
+  ctx.clearRect(0, 0, px, px);
+
+  // Halo just around the disc (the wide glow is the bloom element).
+  const halo = ctx.createRadialGradient(c, c, r * 0.9, c, c, c);
+  halo.addColorStop(0, "rgba(232,238,255,0.5)");
+  halo.addColorStop(0.25, "rgba(220,230,255,0.16)");
+  halo.addColorStop(1, "rgba(220,230,255,0)");
+  ctx.fillStyle = halo;
+  ctx.fillRect(0, 0, px, px);
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(c, c, r, 0, Math.PI * 2);
+  ctx.clip();
+
+  // Base: bright, slightly warm toward the lit upper-left.
+  const base = ctx.createRadialGradient(
+    c - r * 0.25,
+    c - r * 0.25,
+    r * 0.1,
+    c,
+    c,
+    r,
+  );
+  base.addColorStop(0, "#f7f5ee");
+  base.addColorStop(0.7, "#e7e4da");
+  base.addColorStop(1, "#cfccc2");
+  ctx.fillStyle = base;
+  ctx.fillRect(c - r, c - r, r * 2, r * 2);
+
+  // Maria: clusters of soft blotches, mostly in the upper half like the real moon.
+  const MARIA: readonly (readonly [
+    number,
+    number,
+    number,
+  ])[] = [
+    [
+      -0.35,
+      -0.3,
+      0.32,
+    ],
+    [
+      0.05,
+      -0.38,
+      0.26,
+    ],
+    [
+      0.3,
+      -0.12,
+      0.24,
+    ],
+    [
+      -0.15,
+      0.05,
+      0.28,
+    ],
+    [
+      -0.48,
+      0.18,
+      0.2,
+    ],
+    [
+      0.2,
+      0.28,
+      0.16,
+    ],
+    [
+      0.42,
+      0.22,
+      0.12,
+    ],
+  ];
+  for (const [mx, my, mr] of MARIA) {
+    for (let k = 0; k < 4; k++) {
+      const x = c + (mx + (random() - 0.5) * mr * 0.8) * r;
+      const y = c + (my + (random() - 0.5) * mr * 0.8) * r;
+      const rr = mr * r * lerp(0.5, 0.9, random());
+      const g = ctx.createRadialGradient(x, y, 0, x, y, rr);
+      g.addColorStop(0, "rgba(122,124,132,0.32)");
+      g.addColorStop(0.6, "rgba(130,132,140,0.18)");
+      g.addColorStop(1, "rgba(130,132,140,0)");
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(x, y, rr, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // Craters: a shaded bowl with a lit rim on the side facing the light.
+  for (let k = 0; k < 34; k++) {
+    const angle = random() * Math.PI * 2;
+    const dist = Math.sqrt(random()) * r * 0.88;
+    const x = c + Math.cos(angle) * dist;
+    const y = c + Math.sin(angle) * dist;
+    const cr = r * lerp(0.015, 0.075, random() ** 2);
+    ctx.fillStyle = "rgba(95,96,104,0.22)";
+    ctx.beginPath();
+    ctx.arc(x + cr * 0.15, y + cr * 0.15, cr, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,250,0.35)";
+    ctx.lineWidth = Math.max(0.5, cr * 0.25);
+    ctx.beginPath();
+    ctx.arc(x, y, cr, Math.PI * 0.75, Math.PI * 1.75);
+    ctx.stroke();
+  }
+
+  // Fine grain so the surface doesn't look like flat vector art.
+  for (let k = 0; k < 900; k++) {
+    const x = c + (random() * 2 - 1) * r;
+    const y = c + (random() * 2 - 1) * r;
+    ctx.fillStyle =
+      random() < 0.5 ? "rgba(255,255,255,0.05)" : "rgba(80,80,90,0.05)";
+    ctx.fillRect(x, y, 1.5, 1.5);
+  }
+
+  // Limb darkening: the edge of a sphere reflects less light.
+  const limb = ctx.createRadialGradient(c, c, r * 0.55, c, c, r);
+  limb.addColorStop(0, "rgba(40,44,60,0)");
+  limb.addColorStop(1, "rgba(40,44,60,0.32)");
+  ctx.fillStyle = limb;
+  ctx.fillRect(c - r, c - r, r * 2, r * 2);
+  ctx.restore();
+};
 
 /**
  * Lens-flare ghosts: position along the line from the sun through the scene
@@ -126,13 +276,15 @@ const element = (layer: HTMLElement): HTMLDivElement => {
 
 /**
  * Sun (day, dawn, dusk) or moon (night), plus stars behind everything.
+ * - Moon: same size as the sun, painted once as a realistic disc (maria,
+ *   craters, limb darkening), with a cooler, dimmer bloom and lens flare.
  * - Sun: a blown-out white core with a wide soft bloom over the sky and faint
  *   lens-flare ghosts across the scene. It drifts slowly; the ghosts move
  *   against it like a real lens. Higher `intensity` widens and brightens the
  *   bloom and makes the ghosts more visible.
  * - Stars are painted once per resize into 3 canvases; twinkling only animates
  *   each canvas' `opacity`, so frames never repaint them.
- * Per frame: transforms and opacities on at most 9 nodes.
+ * Per frame: transforms and opacities on at most 10 nodes.
  */
 export const createCelestial =
   (style: CelestialStyle): EffectFactory =>
@@ -156,6 +308,11 @@ export const createCelestial =
     });
     const body = element(layer);
     body.setAttribute("data-part", "body");
+    const moon = document.createElement("canvas");
+    moon.setAttribute("data-part", "moon");
+    moon.style.cssText =
+      "position:absolute;left:0;top:0;will-change:transform,opacity;";
+    layer.appendChild(moon);
     const ghostSizes = new Float32Array(GHOSTS.length);
 
     let time = 0;
@@ -215,35 +372,37 @@ export const createCelestial =
       const short = Math.min(width, height);
       const i = options.intensity;
 
-      if (isSun) {
-        const look = tod === "day" ? SUN_DAY : SUN_LOW;
-        size = Math.min(260, Math.max(90, short * 0.22));
-        bloomSize = Math.max(width, height) * lerp(1.1, 2.3, i);
-        bloomAlpha = lerp(0.45, 1, i) * style.strength;
-        ghostAlpha = lerp(0.15, 1, i) ** 1.2 * style.strength;
-        body.style.background = look.core;
-        bloom.style.background = look.bloom;
-        for (let g = 0; g < ghosts.length; g++) {
-          const ghost = GHOSTS[g];
-          const node = ghosts[g];
-          if (!ghost || !node) continue;
-          ghostSizes[g] = short * ghost.size;
-          setSize(node, short * ghost.size);
-          node.style.background = ghostBackground(look.ghost, ghost.ring);
-          node.style.opacity = (ghost.alpha * ghostAlpha).toFixed(3);
-          node.style.display = "block";
-        }
-      } else {
-        size = Math.min(110, Math.max(40, short * 0.09));
-        bloomSize = size * lerp(3.5, 6, i);
-        bloomAlpha = lerp(0.6, 1, i) * style.strength;
-        ghostAlpha = 0;
-        body.style.background = MOON_CORE;
-        bloom.style.background = MOON_GLOW;
-        for (const node of ghosts) node.style.display = "none";
+      const look = isSun ? (tod === "day" ? SUN_DAY : SUN_LOW) : MOON;
+      const flare = isSun ? 1 : MOON_FLARE;
+      // The sun and the moon share the same size.
+      size = Math.min(380, Math.max(130, short * 0.32));
+      bloomSize =
+        Math.max(width, height) * lerp(1.1, 2.3, i) * (isSun ? 1 : 0.75);
+      bloomAlpha = lerp(0.45, 1, i) * style.strength * (isSun ? 1 : 0.8);
+      ghostAlpha = lerp(0.15, 1, i) ** 1.2 * style.strength * flare;
+      bloom.style.background = look.bloom;
+      for (let g = 0; g < ghosts.length; g++) {
+        const ghost = GHOSTS[g];
+        const node = ghosts[g];
+        if (!ghost || !node) continue;
+        ghostSizes[g] = short * ghost.size;
+        setSize(node, short * ghost.size);
+        node.style.background = ghostBackground(look.ghost, ghost.ring);
+        node.style.opacity = (ghost.alpha * ghostAlpha).toFixed(3);
       }
-      body.style.opacity = style.strength.toFixed(3);
-      setSize(body, size);
+      body.style.display = isSun ? "block" : "none";
+      moon.style.display = isSun ? "none" : "block";
+      if (isSun) {
+        body.style.background = look.core;
+        body.style.opacity = style.strength.toFixed(3);
+        setSize(body, size);
+        moon.width = 0;
+        moon.height = 0;
+      } else {
+        moon.style.opacity = style.strength.toFixed(3);
+        setSize(moon, size);
+        paintMoon(moon, size, context.pixelRatio, style.seed);
+      }
       setSize(bloom, bloomSize);
       paintStars();
     };
@@ -260,6 +419,8 @@ export const createCelestial =
           canvas.height = 0;
         }
         stars.length = 0;
+        moon.width = 0;
+        moon.height = 0;
         layer.remove();
       },
       resize: build,
@@ -270,6 +431,7 @@ export const createCelestial =
         const x = cx + Math.cos(time * 0.07) * 9;
         const y = cy + Math.sin(time * 0.11) * 6;
         place(body, size, x, y);
+        place(moon, size, x, y);
         place(bloom, bloomSize, x, y);
         bloom.style.opacity = (
           bloomAlpha *

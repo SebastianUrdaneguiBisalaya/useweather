@@ -33,8 +33,9 @@ const setup = (timeOfDay: TimeOfDay, intensity: number) => {
     Array.from(root.querySelectorAll<HTMLElement>(`[data-part="${name}"]`));
   return {
     bloom: parts("bloom")[0] as HTMLElement,
+    body: parts("body")[0] as HTMLElement,
     effect,
-    ghosts: parts("ghost"),
+    moon: parts("moon")[0] as HTMLElement,
     root,
     stars: parts("stars"),
   };
@@ -43,14 +44,17 @@ const setup = (timeOfDay: TimeOfDay, intensity: number) => {
 const visible = (node: HTMLElement) => node.style.display !== "none";
 
 describe("createCelestial", () => {
-  it("shows the sun with lens flare by day and the moon with stars at night", () => {
+  it("shows the sun by day and a same-size moon with stars at night", () => {
     const day = setup("day", 0.8);
-    expect(day.ghosts.every(visible)).toBe(true);
+    expect(visible(day.body)).toBe(true);
+    expect(visible(day.moon)).toBe(false);
     expect(day.stars.every((s) => !visible(s))).toBe(true);
 
     const night = setup("night", 0.8);
-    expect(night.ghosts.some(visible)).toBe(false);
+    expect(visible(night.moon)).toBe(true);
+    expect(visible(night.body)).toBe(false);
     expect(night.stars.every(visible)).toBe(true);
+    expect(night.moon.style.width).toBe(day.body.style.width);
   });
 
   it("makes the sun more radiant at higher intensity", () => {
