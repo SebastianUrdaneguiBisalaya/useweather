@@ -3,7 +3,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { renderToString } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { WeatherBackground } from "../src";
+import { WeatherBackground, type WeatherScene } from "../src";
 
 (
   globalThis as {
@@ -74,5 +74,17 @@ describe("WeatherBackground", () => {
     expect(outer.getAttribute("aria-hidden")).toBeNull();
     expect(outer.style.pointerEvents).not.toBe("none");
     expect(container.querySelector("button")).not.toBeNull();
+  });
+
+  it("exposes the scene through sceneRef and clears it on unmount", () => {
+    const ref: {
+      current: WeatherScene | null;
+    } = {
+      current: null,
+    };
+    act(() => root.render(<WeatherBackground sceneRef={ref} />));
+    expect(ref.current?.getState()).toBeDefined();
+    act(() => root.render(<span />));
+    expect(ref.current).toBeNull();
   });
 });

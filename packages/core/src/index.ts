@@ -22,6 +22,7 @@ export type {
   ResolvedSceneOptions,
   SceneOptions,
   SceneState,
+  SceneStats,
   TimeOfDay,
   WeatherScene,
 } from "./types";
