@@ -153,7 +153,7 @@ apps/
 - **Frame-rate analysis:** the playground includes a dev-only FPS/frame-time/memory overlay so the maintainer can confirm 60 fps and flat memory per condition. It is never shipped in published packages.
 - Never merge to `main` with `typecheck`, `lint` or `test` failing.
 - `prepublishOnly` runs typecheck, test and build.
-- **Husky hooks** (local safety net, CI must repeat them): `pre-commit` = lint + typecheck; `commit-msg` = Conventional Commits check; `pre-push` = test + build. Never bypass with `--no-verify`.
+- **Husky hooks** (the safety net: there is no CI workflow on pull requests; only `publish.yml` re-runs the checks before publishing): `pre-commit` = lint + typecheck; `commit-msg` = Conventional Commits check; `pre-push` = test + build. Never bypass with `--no-verify`.
 
 ## 9. Local development workflow
 
