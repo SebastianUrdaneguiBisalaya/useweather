@@ -20,7 +20,16 @@ export type SceneContext = {
 export type EffectHost = {
   readonly root: HTMLElement;
   readonly context: SceneContext;
+  /**
+   * Creates a full-size, non-interactive DOM layer stacked by `zIndex`
+   * (the shared canvas sits at {@link CANVAS_Z_INDEX}). The effect owns it and
+   * must remove it in `destroy`.
+   */
+  readonly createLayer: (zIndex: number) => HTMLElement;
 };
+
+/** Stacking order: layers below the canvas (clouds) use less, above it (fog) use more. */
+export const CANVAS_Z_INDEX = 2;
 
 /**
  * One visual effect (clouds, rain, sun...). Plain object, no classes.
@@ -43,7 +52,3 @@ export type EffectFactory = (host: EffectHost) => Effect;
 
 /** Resolves the effects for a condition. Filled in by the effect modules. */
 export type EffectResolver = (condition: Condition) => readonly EffectFactory[];
-
-const NONE: readonly EffectFactory[] = [];
-
-export const noEffects: EffectResolver = () => NONE;

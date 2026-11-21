@@ -1,3 +1,4 @@
+import { resolveConditionEffects } from "../effects/registry";
 import { createUseWeatherError } from "../errors";
 import { resolveOptions } from "../options";
 import { getSkyPalette, SKY_BACKGROUND, SKY_VARIABLES } from "../palettes";
@@ -9,9 +10,9 @@ import type {
   WeatherScene,
 } from "../types";
 import {
+  CANVAS_Z_INDEX,
   type Effect,
   type EffectResolver,
-  noEffects,
   type SceneContext,
 } from "./effect";
 import { watchReducedMotion, watchSize, watchVisibility } from "./environment";
@@ -30,8 +31,9 @@ export type SceneInternals = {
 
 const ROOT_STYLE =
   "position:absolute;inset:0;overflow:hidden;pointer-events:none;contain:strict;";
-const CANVAS_STYLE =
-  "position:absolute;inset:0;width:100%;height:100%;display:block;";
+const CANVAS_STYLE = `position:absolute;inset:0;width:100%;height:100%;display:block;z-index:${CANVAS_Z_INDEX};`;
+const LAYER_STYLE =
+  "position:absolute;inset:0;overflow:hidden;pointer-events:none;";
 
 /**
  * Mounts an animated weather background inside `container` (which should be
@@ -68,7 +70,7 @@ export const createWeatherScene = (
     );
   }
 
-  const resolveEffects = internals.resolveEffects ?? noEffects;
+  const resolveEffects = internals.resolveEffects ?? resolveConditionEffects;
   let opts: ResolvedSceneOptions = resolveOptions(options);
   const quality = createQualityController(opts.quality, opts.maxFps);
 
@@ -98,11 +100,20 @@ export const createWeatherScene = (
   let visible = true;
   let manualPaused = false;
 
+  const createLayer = (zIndex: number): HTMLElement => {
+    const layer = document.createElement("div");
+    layer.style.cssText = LAYER_STYLE;
+    layer.style.zIndex = String(zIndex);
+    root.appendChild(layer);
+    return layer;
+  };
+
   const mountEffects = (): void => {
     for (const effect of effects) effect.destroy();
     effects = resolveEffects(opts.condition).map((factory) =>
       factory({
         context,
+        createLayer,
         root,
       }),
     );
