@@ -26,7 +26,11 @@
 
     // Workspace packages resolve to their sources, so a package can be type-checked and tested without building the
     // ones it depends on first. Published builds keep these as external imports.
-    "paths": {},
+    "paths": {
+      "@useweather/core": [
+        "./packages/core/src/index.ts"
+      ]
+    },
     "skipLibCheck": true,
 
     "strict": true,
