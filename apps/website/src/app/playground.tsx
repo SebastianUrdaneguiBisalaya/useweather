@@ -8,9 +8,11 @@ import {
   type ReducedMotion,
   TIMES_OF_DAY,
   type TimeOfDay,
+  type WeatherScene,
 } from "@useweather/core";
 import { WeatherBackground } from "@useweather/react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useRef, useState } from "react";
+import { PerfOverlay } from "./perf-overlay";
 
 const QUALITIES: readonly Quality[] = [
   "auto",
@@ -173,6 +175,9 @@ function Toggle({
 export function Playground() {
   const [s, setS] = useState<Settings>(INITIAL);
   const [open, setOpen] = useState(true);
+  // The overlay is a development tool: on by default only in `next dev`.
+  const [perf, setPerf] = useState(process.env.NODE_ENV !== "production");
+  const sceneRef = useRef<WeatherScene | null>(null);
   const set = <K extends keyof Settings>(key: K, value: Settings[K]) =>
     setS((prev) => ({
       ...prev,
@@ -181,7 +186,10 @@ export function Playground() {
 
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-neutral-950 text-white">
-      <WeatherBackground {...s}>
+      <WeatherBackground
+        {...s}
+        sceneRef={sceneRef}
+      >
         <main className="flex h-full flex-col justify-start p-8 sm:p-14">
           <p className="text-sm font-medium uppercase tracking-[0.2em] text-white/70">
             useweather playground
@@ -291,6 +299,11 @@ export function Playground() {
                 label="Paused"
                 onChange={(v) => set("paused", v)}
               />
+              <Toggle
+                checked={perf}
+                label="Performance overlay"
+                onChange={setPerf}
+              />
             </div>
             <button
               className="rounded-lg bg-white/8 py-1.5 text-xs text-white/75 hover:bg-white/12 hover:text-white"
@@ -302,6 +315,14 @@ export function Playground() {
           </div>
         ) : null}
       </aside>
+
+      {perf ? (
+        <PerfOverlay
+          conditions={CONDITIONS}
+          sceneRef={sceneRef}
+          setCondition={(c) => set("condition", c)}
+        />
+      ) : null}
     </div>
   );
 }

@@ -103,4 +103,22 @@ export type WeatherScene = {
   destroy: () => void;
   /** Current scene state. */
   getState: () => SceneState;
+  /**
+   * Performance counters, for diagnostics and FPS overlays. Cheap to call,
+   * but meant for polling a few times per second, not every frame.
+   */
+  getStats: () => SceneStats;
+};
+
+/** Counters returned by {@link WeatherScene.getStats}. */
+export type SceneStats = {
+  /** Frames drawn by the animation loop since the scene was created. */
+  readonly frames: number;
+  /** Total time spent updating and drawing those frames, in ms. */
+  readonly workMs: number;
+  /** Longest single frame (update + draw) since the previous `getStats` call, in ms. */
+  readonly maxWorkMs: number;
+  /** Active quality level (`"auto"` may have stepped down). */
+  readonly quality: QualityLevel;
+  readonly state: SceneState;
 };

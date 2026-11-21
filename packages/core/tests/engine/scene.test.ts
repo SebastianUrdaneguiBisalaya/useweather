@@ -87,4 +87,30 @@ describe("createWeatherScene", () => {
     expect(destroy).toHaveBeenCalledTimes(1);
     expect(scene.getState()).toBe("destroyed");
   });
+
+  it("counts drawn frames and work time in getStats", () => {
+    mockReducedMotion(false);
+    const frame: {
+      tick?: (t: number) => void;
+    } = {};
+    const scene = createWeatherScene(
+      document.body,
+      {},
+      {
+        frameDeps: {
+          cancelFrame: vi.fn(),
+          requestFrame: (cb) => {
+            frame.tick = cb;
+            return 1;
+          },
+        },
+      },
+    );
+    for (let i = 0; i <= 10; i++) frame.tick?.(i * (1000 / 60));
+    const stats = scene.getStats();
+    expect(stats.frames).toBe(10);
+    expect(stats.workMs).toBeGreaterThanOrEqual(0);
+    expect(stats.state).toBe("running");
+    expect(scene.getStats().maxWorkMs).toBe(0);
+  });
 });

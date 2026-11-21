@@ -25,6 +25,15 @@ export type WeatherBackgroundProps = SceneOptions & {
   style?: CSSProperties | undefined;
   /** Content rendered on top of the background. */
   children?: ReactNode;
+  /**
+   * Receives the underlying scene once mounted (and `null` on unmount), for
+   * imperative control (`pause`, `resume`) or diagnostics (`getStats`).
+   */
+  sceneRef?:
+    | {
+        current: WeatherScene | null;
+      }
+    | undefined;
 };
 
 const OUTER_STYLE: CSSProperties = {
@@ -72,12 +81,13 @@ export function WeatherBackground({
   paused,
   quality,
   reducedMotion,
+  sceneRef,
   style,
   timeOfDay,
   wind,
 }: WeatherBackgroundProps): ReactNode {
   const hostRef = useRef<HTMLDivElement>(null);
-  const sceneRef = useRef<WeatherScene | null>(null);
+  const internalScene = useRef<WeatherScene | null>(null);
 
   const options = useMemo<SceneOptions>(
     () => ({
@@ -107,21 +117,25 @@ export function WeatherBackground({
   );
   const optionsRef = useRef(options);
   optionsRef.current = options;
+  const externalRef = useRef(sceneRef);
+  externalRef.current = sceneRef;
 
   // Mount once; later prop changes go through `update` instead of remounting.
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
     const scene = createWeatherScene(host, optionsRef.current);
-    sceneRef.current = scene;
+    internalScene.current = scene;
+    if (externalRef.current) externalRef.current.current = scene;
     return () => {
       scene.destroy();
-      sceneRef.current = null;
+      internalScene.current = null;
+      if (externalRef.current) externalRef.current.current = null;
     };
   }, []);
 
   useEffect(() => {
-    sceneRef.current?.update(options);
+    internalScene.current?.update(options);
   }, [
     options,
   ]);

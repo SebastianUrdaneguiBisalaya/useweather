@@ -7,6 +7,7 @@ import type {
   ResolvedSceneOptions,
   SceneOptions,
   SceneState,
+  SceneStats,
   WeatherScene,
 } from "../types";
 import {
@@ -144,13 +145,26 @@ export const createWeatherScene = (
     for (let i = 0; i < effects.length; i++) effects[i]?.draw?.(ctx2d);
   };
 
+  const now =
+    typeof performance !== "undefined"
+      ? () => performance.now()
+      : () => Date.now();
+  let frames = 0;
+  let workMs = 0;
+  let maxWorkMs = 0;
+
   const loop = createFrameLoop(
     (dt, elapsedMs) => {
+      const start = now();
       if (quality.sample(elapsedMs)) {
         context.quality = quality.current();
         applyCanvasSize();
       }
       render(dt);
+      const spent = now() - start;
+      frames++;
+      workMs += spent;
+      if (spent > maxWorkMs) maxWorkMs = spent;
     },
     opts.maxFps,
     internals.frameDeps,
@@ -222,6 +236,17 @@ export const createWeatherScene = (
       root.remove();
     },
     getState: () => state,
+    getStats: (): SceneStats => {
+      const stats: SceneStats = {
+        frames,
+        maxWorkMs,
+        quality: context.quality.level,
+        state,
+        workMs,
+      };
+      maxWorkMs = 0;
+      return stats;
+    },
     pause: () => {
       manualPaused = true;
       sync();
