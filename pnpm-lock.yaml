@@ -124,6 +124,12 @@ importers:
 
   apps/website:
     dependencies:
+      '@useweather/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@useweather/react':
+        specifier: workspace:*
+        version: link:../../packages/react
       next:
         specifier: 16.3.4
         version: 16.3.4(@types/node@20.19.43)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)

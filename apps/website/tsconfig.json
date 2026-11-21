@@ -1,21 +1,24 @@
 {
   "compilerOptions": {
     "allowJs": true,
-    "esModuleInterop": true,
     "incremental": true,
-    "isolatedModules": true,
     "jsx": "react-jsx",
     "lib": [
       "dom",
       "dom.iterable",
       "esnext"
     ],
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "noEmit": true,
+    // Replaces the base `paths`, so the workspace sources are mapped again here:
+    // the playground runs against the library sources with hot reload, no build step.
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@useweather/core": [
+        "../../packages/core/src/index.ts"
+      ],
+      "@useweather/react": [
+        "../../packages/react/src/index.ts"
       ]
     },
     "plugins": [
@@ -24,13 +27,14 @@
       }
     ],
     "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "target": "ES2017"
+    "types": [
+      "node"
+    ]
   },
   "exclude": [
     "node_modules"
   ],
+  "extends": "../../tsconfig.base.json",
   "include": [
     "next-env.d.ts",
     "**/*.ts",

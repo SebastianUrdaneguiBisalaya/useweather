@@ -7,6 +7,7 @@
   "scripts": {
     "build": "pnpm --filter \"./packages/*\" run build",
     "dev": "pnpm --filter ./packages/core run dev",
+    "playground": "pnpm --filter website dev",
     "typecheck": "pnpm --filter \"./packages/*\" run typecheck",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
