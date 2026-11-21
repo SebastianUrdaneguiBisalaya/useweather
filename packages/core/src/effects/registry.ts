@@ -4,6 +4,7 @@ import { type CloudStyle, createClouds } from "./clouds";
 import { createFog } from "./fog";
 import { createLightning } from "./lightning";
 import { createPrecipitation, type PrecipitationStyle } from "./precipitation";
+import { createSnow, type SnowStyle } from "./snow";
 
 const WHITE = [
   250,
@@ -233,6 +234,49 @@ const SLEET: PrecipitationStyle = {
   seed: 113,
 };
 
+const SNOW: SnowStyle = {
+  alpha: 0.9,
+  color: [
+    255,
+    255,
+    255,
+  ],
+  count: 220,
+  radius: [
+    1.3,
+    3.2,
+  ],
+  seed: 127,
+  speed: [
+    0.07,
+    0.14,
+  ],
+  sway: [
+    6,
+    22,
+  ],
+  swayRate: [
+    0.25,
+    0.7,
+  ],
+};
+
+const HEAVY_SNOW: SnowStyle = {
+  ...SNOW,
+  count: 520,
+  radius: [
+    1.6,
+    4,
+  ],
+  seed: 131,
+  speed: [
+    0.1,
+    0.22,
+  ],
+};
+
+const snow = createSnow(SNOW);
+const heavySnow = createSnow(HEAVY_SNOW);
 const drizzle = createPrecipitation(DRIZZLE);
 const rain = createPrecipitation(RAIN);
 const heavyRain = createPrecipitation(HEAVY_RAIN);
@@ -249,7 +293,7 @@ const streaks = createClouds(STREAKS);
 
 /**
  * Effects per condition. Precipitation conditions get their cloud deck here;
- * rain, hail and sleet particles draw on the canvas above it.
+ * rain, hail, sleet and snow particles draw on the canvas above it.
  */
 const EFFECTS: Readonly<Record<Condition, readonly EffectFactory[]>> = {
   clear: [],
@@ -273,6 +317,7 @@ const EFFECTS: Readonly<Record<Condition, readonly EffectFactory[]>> = {
   ],
   "heavy-snow": [
     snowDeck,
+    heavySnow,
   ],
   overcast: [
     overcast,
@@ -290,6 +335,7 @@ const EFFECTS: Readonly<Record<Condition, readonly EffectFactory[]>> = {
   ],
   snow: [
     snowDeck,
+    snow,
   ],
   thunderstorm: [
     stormDeck,
