@@ -1,7 +1,12 @@
 export { createWeatherScene } from "./engine/scene";
 export type { UseWeatherError, UseWeatherErrorCode } from "./errors";
 export { isUseWeatherError } from "./errors";
-export { CONDITIONS, DEFAULT_OPTIONS, TIMES_OF_DAY } from "./options";
+export {
+  CONDITIONS,
+  DEFAULT_OPTIONS,
+  resolveOptions,
+  TIMES_OF_DAY,
+} from "./options";
 export type { SkyPalette } from "./palettes";
 export {
   getSkyPalette,

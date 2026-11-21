@@ -249,8 +249,14 @@ export const createWeatherScene = (
       )
         applySky();
       if (opts.condition !== prev.condition) mountEffects();
-      else for (const effect of effects) effect.configure?.();
+      else if (
+        opts.intensity !== prev.intensity ||
+        opts.timeOfDay !== prev.timeOfDay
+      )
+        // Effects read `wind` live every frame, so only these rebuild them.
+        for (const effect of effects) effect.configure?.();
       sync();
+      // Frozen scenes still show option changes (e.g. wind while paused).
       if (state === "paused") render(0);
     },
   };
