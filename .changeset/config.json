@@ -1,0 +1,15 @@
+{
+  "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
+    "onlyUpdatePeerDependentsWhenOutOfRange": true
+  },
+  "$schema": "https://unpkg.com/@changesets/config@4.0.1/schema.json",
+  "access": "public",
+  "baseBranch": "main",
+  "changelog": "@changesets/cli/changelog",
+  "commit": false,
+  "fixed": [],
+  "format": false,
+  "ignore": [],
+  "linked": [],
+  "updateInternalDependencies": "patch"
+}
