@@ -1,6 +1,6 @@
 {
   "name": "@useweather/react",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "React component that renders animated weather backgrounds, built on @useweather/core.",
   "keywords": [
     "weather",
