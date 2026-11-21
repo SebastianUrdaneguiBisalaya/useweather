@@ -1,0 +1,12 @@
+{
+  "skills": {
+    "github": {
+      "commit": "f2f4a8d20e3cd3de715fc5cb81b99f7ab50f7371",
+      "computedHash": "704ec87b5409c111271e2549a1a4c22271b0e68fe09ecfd74349b12b4b9bcf48",
+      "skillPath": "skills/github/SKILL.md",
+      "source": "SebastianUrdaneguiBisalaya/skillstack",
+      "sourceType": "github"
+    }
+  },
+  "version": 2
+}
