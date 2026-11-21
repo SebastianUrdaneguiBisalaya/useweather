@@ -1,6 +1,6 @@
 {
   "name": "@useweather/core",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Framework-agnostic engine that renders animated weather backgrounds (clouds, rain, snow, sun and more) with a 60 fps, low-memory canvas and CSS pipeline.",
   "keywords": [
     "weather",
