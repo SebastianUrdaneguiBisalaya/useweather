@@ -2,8 +2,6 @@
 
 `<WeatherBackground />`: an animated weather background for React. Clouds, rain, snow, a glowing sun, a realistic moon and stars, driven entirely by props.
 
-> **Status:** pre-release. Not published to npm yet.
-
 > Inspired by native weather app backgrounds. An independent project, not affiliated with Apple or any other company. All visuals are original.
 
 ## Installation

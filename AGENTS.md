@@ -118,7 +118,8 @@ apps/
 ### Publishing
 
 - **Publishing to npm is never done manually or by an AI agent.** Never run `npm publish` / `pnpm publish` locally or from an agent session. It only happens through `.github/workflows/publish.yml`.
-- **Trigger:** a GitHub Release being published. Merging to `main` does not publish by itself. The flow is: bump version (via changesets) -> merge to `main` -> create a GitHub Release (tag like `v1.2.0`).
+- **Trigger:** a GitHub Release being published. Merging to `main` does not publish by itself. The flow is: `pnpm run version-packages` (applies changesets) -> merge to `main` -> create a GitHub Release (tag like `v1.2.0`).
+- **Order:** the workflow publishes `packages/core` then `packages/react`, and runs `pnpm run smoke:pack` before publishing. Add new packages to its loop, dependencies first.
 - **Gate:** `typecheck` -> `lint` -> `test` -> `build` must pass first.
 - **Version guard:** the workflow skips publishing if `npm view <name>@<version>` already exists.
 - **Secret:** `NPM_TOKEN` (npm *Automation* token) in GitHub repo secrets. Never commit or log it.

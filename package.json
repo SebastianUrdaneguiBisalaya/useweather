@@ -14,7 +14,10 @@
     "format": "biome format --write .",
     "test": "pnpm --filter \"./packages/*\" run test",
     "test:watch": "pnpm --filter ./packages/core run test:watch",
-    "prepare": "husky"
+    "prepare": "husky",
+    "smoke:pack": "node scripts/smoke-pack.mjs",
+    "changeset": "changeset",
+    "version-packages": "changeset version && pnpm install --lockfile-only"
   },
   "devEngines": {
     "packageManager": {

@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-useweather is in pre-release. Once published, security fixes target the latest released minor version of each package (`@useweather/core` and `@useweather/react`). Upgrade to the latest version before reporting.
+Security fixes target the latest released minor version of each package (`@useweather/core` and `@useweather/react`). Upgrade to the latest version before reporting.
 
 ## Reporting a vulnerability
 

@@ -1,8 +1,8 @@
 name: Publish to npm
 
-# Publishing is a deliberate step: version the packages with changesets (`pnpm run version-packages`), merge that to
-# `main`, then publish a GitHub Release. Every package whose version isn't on npm yet is published; the rest are
-# skipped, so one release can ship one package or both.
+# Publishing is a deliberate step: apply the changesets with `pnpm run version-packages`, merge that to `main`, then
+# publish a GitHub Release. Every package whose version isn't on npm yet is published; the rest are skipped, so one
+# release can ship one package or both.
 on:
   release:
     types: [published]
@@ -27,7 +27,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version-file: .nvmrc
           registry-url: https://registry.npmjs.org
           cache: pnpm
 
@@ -49,13 +49,13 @@ jobs:
       - name: Smoke-check the packed packages (ESM, CJS, types)
         run: pnpm run smoke:pack
 
-      # Auth goes first: publishing rewrites each integration's `workspace:^` peer range to `^<auth version>`, so that
-      # version must already be on npm. Add every new integration after auth.
+      # Core goes first: publishing rewrites react's `workspace:^` dependency to `^<core version>`, so that version
+      # must already be on npm.
       - name: Publish new versions
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          for dir in packages/auth packages/google-calendar packages/nager-date packages/open-meteo; do
+          for dir in packages/core packages/react; do
             name=$(node -p "require('./$dir/package.json').name")
             version=$(node -p "require('./$dir/package.json').version")
 

@@ -47,7 +47,7 @@ if (process.argv[2] !== undefined) {
   const problem = check(readFileSync(process.argv[2], "utf8"));
   if (problem !== null) {
     console.error(
-      `✖ ${problem}\n  Examples: "feat(google-calendar): add events.move", "fix(auth/oauth): …", "docs: …"`,
+      `✖ ${problem}\n  Examples: "feat(core): add hail bounce", "fix(react): keep children interactive", "docs: …"`,
     );
     process.exit(1);
   }

@@ -180,7 +180,7 @@ importers:
   packages/react:
     dependencies:
       '@useweather/core':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../core
     devDependencies:
       '@types/react':
