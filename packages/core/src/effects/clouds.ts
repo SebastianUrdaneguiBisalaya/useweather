@@ -1,5 +1,5 @@
 import type { EffectFactory } from "../engine/effect";
-import { createRandom, lerp, lightFor, type Rgb, rgba, wrap } from "./shared";
+import { createRandom, lerp, lightFor, type Rgb, wrap } from "./shared";
 
 /** Look of a cloud deck. Sizes are fractions of the scene width, positions of its height. */
 export type CloudStyle = {
@@ -29,46 +29,89 @@ export type CloudStyle = {
 
 /** Extra drift added by `wind` = ±1, in scene widths per second. */
 const WIND_SPEED = 0.045;
-const PUFFS = 5;
+/**
+ * Cloud sprites are soft, so they are painted at half resolution and scaled
+ * up by CSS: a quarter of the memory with no visible loss.
+ */
+const SPRITE_SCALE = 0.5;
+
+const clamp = (v: number, min: number, max: number): number =>
+  v < min ? min : v > max ? max : v;
 
 /**
- * Builds one cloud as a single element painted with soft radial gradients:
- * no images, no filters, only `transform` changes per frame.
+ * Paints one organic cloud into `canvas`: many overlapping soft puffs, bigger
+ * and higher in the middle, with a flatter base and a slightly darker underside.
+ * Every puff is clamped inside the sprite, so the result never shows a cut edge.
+ * Runs only on resize/option changes, never per frame.
  */
-const cloudBackground = (
+const paintCloud = (
+  canvas: HTMLCanvasElement,
   random: () => number,
+  w: number,
+  h: number,
   color: Rgb,
-  alpha: number,
-): string => {
-  const layers: string[] = [];
-  for (let i = 0; i < PUFFS; i++) {
-    const x = 15 + (70 * i) / (PUFFS - 1) + (random() - 0.5) * 10;
-    const y =
-      50 + (random() - 0.5) * 24 - Math.sin((i / (PUFFS - 1)) * Math.PI) * 12;
-    const rx = 22 + random() * 14;
-    const ry = 34 + random() * 16;
-    layers.push(
-      `radial-gradient(ellipse ${rx.toFixed(1)}% ${ry.toFixed(1)}% at ${x.toFixed(1)}% ${y.toFixed(1)}%, ${rgba(color, alpha)} 0%, ${rgba(color, alpha * 0.55)} 45%, ${rgba(color, 0)} 100%)`,
-    );
+): void => {
+  const cw = Math.max(1, Math.round(w * SPRITE_SCALE));
+  const ch = Math.max(1, Math.round(h * SPRITE_SCALE));
+  canvas.width = cw;
+  canvas.height = ch;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  ctx.clearRect(0, 0, cw, ch);
+  const r = Math.round(color[0]);
+  const g = Math.round(color[1]);
+  const b = Math.round(color[2]);
+  const puffs = 18 + Math.floor(random() * 12);
+  const maxR = Math.min(ch * 0.46, cw * 0.22);
+  for (let i = 0; i < puffs; i++) {
+    const t = random();
+    const hump = Math.sin(Math.PI * t);
+    const radius = maxR * lerp(0.35, 1, random()) * lerp(0.55, 1, hump);
+    const x = clamp(lerp(0.12, 0.88, t) * cw, radius, cw - radius);
+    // Base around 62% of the height; the middle bulges upward.
+    const y = clamp(ch * (0.64 - 0.3 * hump * random()), radius, ch - radius);
+    const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+    gradient.addColorStop(0, `rgba(${r},${g},${b},0.42)`);
+    gradient.addColorStop(0.5, `rgba(${r},${g},${b},0.22)`);
+    gradient.addColorStop(1, `rgba(${r},${g},${b},0)`);
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
   }
-  return layers.join(",");
+  // Shade the underside for volume, only where the cloud already is.
+  ctx.globalCompositeOperation = "source-atop";
+  const shade = ctx.createLinearGradient(0, 0, 0, ch);
+  shade.addColorStop(0, "rgba(255,255,255,0.08)");
+  shade.addColorStop(0.55, "rgba(0,0,0,0)");
+  shade.addColorStop(1, "rgba(20,28,40,0.18)");
+  ctx.fillStyle = shade;
+  ctx.fillRect(0, 0, cw, ch);
+  ctx.globalCompositeOperation = "source-over";
 };
 
 /**
  * Parallax cloud deck: farther clouds are smaller, fainter and slower.
- * Elements are created on resize/configure only; each frame just moves them.
+ * Each cloud is pre-rendered once into its own small canvas; frames only
+ * move them with `transform`.
  */
 export const createClouds =
   (style: CloudStyle): EffectFactory =>
   ({ context, createLayer }) => {
     const layer = createLayer(1);
-    const nodes: HTMLDivElement[] = [];
+    const nodes: HTMLCanvasElement[] = [];
     let xs = new Float32Array(0);
     let ys = new Float32Array(0);
     let ws = new Float32Array(0);
     let speeds = new Float32Array(0);
     let count = 0;
     let lastWidth = 0;
+
+    const release = (node: HTMLCanvasElement): void => {
+      node.width = 0;
+      node.height = 0;
+      node.remove();
+    };
 
     const build = (): void => {
       const { width, height, options, quality } = context;
@@ -90,13 +133,16 @@ export const createClouds =
       speeds = new Float32Array(next);
 
       while (nodes.length < next) {
-        const node = document.createElement("div");
+        const node = document.createElement("canvas");
         node.style.cssText =
           "position:absolute;left:0;top:0;will-change:transform;";
         layer.appendChild(node);
         nodes.push(node);
       }
-      while (nodes.length > next) nodes.pop()?.remove();
+      while (nodes.length > next) {
+        const node = nodes.pop();
+        if (node) release(node);
+      }
 
       for (let i = 0; i < next; i++) {
         const depth = random();
@@ -120,11 +166,8 @@ export const createClouds =
         node.style.width = `${w.toFixed(1)}px`;
         node.style.height = `${h.toFixed(1)}px`;
         node.style.zIndex = String(Math.round(depth * 10));
-        node.style.background = cloudBackground(
-          random,
-          color,
-          Math.min(1, alpha),
-        );
+        node.style.opacity = Math.min(1, alpha).toFixed(3);
+        paintCloud(node, random, w, h, color);
       }
       count = next;
       lastWidth = width;
@@ -133,6 +176,7 @@ export const createClouds =
     return {
       configure: build,
       destroy: () => {
+        for (const node of nodes) release(node);
         nodes.length = 0;
         layer.remove();
       },

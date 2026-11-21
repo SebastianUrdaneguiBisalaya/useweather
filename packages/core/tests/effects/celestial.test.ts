@@ -29,33 +29,39 @@ const setup = (timeOfDay: TimeOfDay, intensity: number) => {
   });
   effect.resize?.();
   effect.update?.(1);
-  const layer = root.firstElementChild as HTMLElement;
-  const nodes = Array.from(layer.children) as HTMLElement[];
+  const parts = (name: string) =>
+    Array.from(root.querySelectorAll<HTMLElement>(`[data-part="${name}"]`));
   return {
+    bloom: parts("bloom")[0] as HTMLElement,
     effect,
-    rays: nodes[4] as HTMLElement,
+    ghosts: parts("ghost"),
     root,
-    stars: nodes.slice(0, 3),
+    stars: parts("stars"),
   };
 };
 
 const visible = (node: HTMLElement) => node.style.display !== "none";
 
 describe("createCelestial", () => {
-  it("shows the sun by day and the moon with stars at night", () => {
+  it("shows the sun with lens flare by day and the moon with stars at night", () => {
     const day = setup("day", 0.8);
-    expect(visible(day.rays)).toBe(true);
+    expect(day.ghosts.every(visible)).toBe(true);
     expect(day.stars.every((s) => !visible(s))).toBe(true);
 
     const night = setup("night", 0.8);
-    expect(visible(night.rays)).toBe(false);
+    expect(night.ghosts.some(visible)).toBe(false);
     expect(night.stars.every(visible)).toBe(true);
   });
 
   it("makes the sun more radiant at higher intensity", () => {
-    const soft = Number(setup("day", 0.2).rays.style.opacity || 0);
-    const strong = Number(setup("day", 1).rays.style.opacity);
-    expect(strong).toBeGreaterThan(soft);
+    const soft = setup("day", 0.1);
+    const strong = setup("day", 1);
+    expect(Number(strong.bloom.style.opacity)).toBeGreaterThan(
+      Number(soft.bloom.style.opacity),
+    );
+    expect(Number.parseFloat(strong.bloom.style.width)).toBeGreaterThan(
+      Number.parseFloat(soft.bloom.style.width),
+    );
   });
 
   it("removes its layer on destroy", () => {
